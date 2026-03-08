@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ video.title }} - Youtomation{% endblock %}
+
+{% block content %}
+<div x-data="videoDetail()" x-cloak class="space-y-6">
+    <!-- Back Link -->
+    <a href="{% url 'youtomation_app:videos_list' %}" class="text-red-600 hover:text-red-700 font-medium flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Videos
+    </a>
+
+    <!-- Video Header -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold text-gray-900">{{ video.title }}</h1>
+                <p class="text-gray-600 mt-2">{{ video.description }}</p>
+                
+                <!-- Status Badge -->
+                <div class="mt-4">
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold
+                        {% if video.status == 'published' %}
+                            bg-green-100 text-green-800
+                        {% elif video.status == 'failed' %}
+                            bg-red-100 text-red-800
+                        {% elif video.status|startswith:'generating' or video.status == 'uploading' %}
+                            bg-yellow-100 text-yellow-800
+                        {% else %}
+                            bg-blue-100 text-blue-800
+                        {% endif %}
+                    ">
+                        {{ video.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center">
+                    <p class="text-gray-600 text-sm">Duration</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ video.duration_formatted|default:'-' }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-600 text-sm">Views</p>
+                    <p class="text-2xl font-bold text-gray-900 mt-1">{{ video.youtube_views|default:'0' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div x-data="{ tab: 'overview' }" class="space-y-6">
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200">
+            <nav class="flex gap-8" aria-label="Tabs">
+                <button
+                    @click="tab = 'overview'"
+                    :class="tab === 'overview' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-600 hover:text-gray-900'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm transition"
+                >
+                    Overview
+                </button>
+                <button
+                    @click="tab = 'script'"
+                    :class="tab === 'script' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-600 hover:text-gray-900'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm transition"
+                >
+                    Script
+                </button>
+                <button
+                    @click="tab = 'logs'"
+                    :class="tab === 'logs' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-600 hover:text-gray-900'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm transition"
+                >
+                    Logs
+                </button>
+                {% if video.is_published %}
+                <button
+                    @click="tab = 'youtube'"
+                    :class="tab === 'youtube' ? 'border-red-500 text-red-600' : 'border-transparent text-gray-600 hover:text-gray-900'"
+                    class="py-4 px-1 border-b-2 font-medium text-sm transition"
+                >
+                    YouTube
+                </button>
+                {% endif %}
+            </nav>
+        </div>
+
+        <!-- Overview Tab -->
+        <div x-show="tab === 'overview'" class="space-y-6">
+            <!-- Video Metadata -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Metadata</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Created</p>
+                        <p class="text-gray-900 mt-2">{{ video.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Updated</p>
+                        <p class="text-gray-900 mt-2">{{ video.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Resolution</p>
+                        <p class="text-gray-900 mt-2">{{ video.video_width }}×{{ video.video_height }}@{{ video.video_fps }}fps</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600 text-sm font-medium">Topic</p>
+                        <p class="text-gray-900 mt-2">{{ video.trending_topic.title|default:"N/A" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            {% if video.tags %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Tags</h2>
+                <div class="flex flex-wrap gap-2">
+                    {% for tag in video.tags %}
+                    <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tasks Progress -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Generation Pipeline</h2>
+                <div class="space-y-4">
+                    {% for task in tasks %}
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">{{ task.get_task_type_display }}</p>
+                            <p class="text-sm text-gray-600">
+                                <span class="capitalize">{{ task.status }}</span>
+                                {% if task.completed_at %}
+                                    • {{ task.duration_seconds }}s
+                                {% endif %}
+                            </p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if task.status == 'completed' %}
+                                bg-green-100 text-green-800
+                            {% elif task.status == 'failed' %}
+                                bg-red-100 text-red-800
+                            {% elif task.status == 'running' %}
+                                bg-yellow-100 text-yellow-800
+                            {% else %}
+                                bg-gray-100 text-gray-800
+                            {% endif %}
+                        ">
+                            {{ task.status|upper }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Script Tab -->
+        <div x-show="tab === 'script'" class="bg-white rounded-lg shadow-md p-6">
+            {% if video.script %}
+            <div class="prose prose-sm max-w-none">
+                <div class="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-sm text-gray-700 font-mono">{{ video.script }}</div>
+            </div>
+            {% else %}
+            <p class="text-gray-600">Script not yet generated</p>
+            {% endif %}
+        </div>
+
+        <!-- Logs Tab -->
+        <div x-show="tab === 'logs'" x-data="{ logs: [] }" @click="loadLogs()">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Generation Logs</h2>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    <template x-for="log in logs" :key="log.timestamp">
+                        <div class="border-l-4 pl-4 py-2"
+                            :class="log.level === 'ERROR' ? 'border-red-500 bg-red-50' : 
+                                    log.level === 'WARNING' ? 'border-yellow-500 bg-yellow-50' : 
+                                    'border-blue-500 bg-blue-50'"
+                        >
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-gray-900" x-text="log.message"></p>
+                                    <p class="text-xs text-gray-500 mt-1" x-text="log.task"></p>
+                                </div>
+                                <p class="text-xs text-gray-500 whitespace-nowrap ml-4" x-text="formatTime(log.timestamp)"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <script>
+            function loadLogs() {
+                const videoId = {{ video.id }};
+                fetch(`/api/video/${videoId}/logs/`)
+                    .then(r => r.json())
+                    .then(data => this.logs = data.logs || [])
+                    .catch(err => console.error('Error loading logs:', err));
+            }
+
+            function formatTime(dateStr) {
+                return new Date(dateStr).toLocaleTimeString();
+            }
+            </script>
+        </div>
+
+        <!-- YouTube Tab -->
+        {% if video.is_published %}
+        <div x-show="tab === 'youtube'" class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">YouTube Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Video ID</p>
+                    <p class="text-gray-900 mt-2 font-mono">{{ video.youtube_video_id }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Upload Date</p>
+                    <p class="text-gray-900 mt-2">{{ video.youtube_upload_date|date:"M d, Y H:i" }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Views</p>
+                    <p class="text-gray-900 mt-2 text-lg font-semibold">{{ video.youtube_views }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Likes</p>
+                    <p class="text-gray-900 mt-2 text-lg font-semibold">{{ video.youtube_likes }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <a href="{{ video.youtube_url }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    Watch on YouTube
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Error Messages -->
+    {% if video.error_message %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <h3 class="text-red-800 font-semibold">Error</h3>
+        <p class="text-red-700 mt-1">{{ video.error_message }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

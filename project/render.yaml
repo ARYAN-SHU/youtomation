@@ -1,0 +1,162 @@
+services:
+  - type: web
+    name: youtomation-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    region: oregon
+    plan: standard
+    healthCheckPath: /health/
+    
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: ALLOWED_HOSTS
+        value: youtomation-api.onrender.com
+      - key: SECURE_SSL_REDIRECT
+        value: true
+      - key: SESSION_COOKIE_SECURE
+        value: true
+      - key: CSRF_COOKIE_SECURE
+        value: true
+      - key: SECURE_HSTS_SECONDS
+        value: '31536000'
+      - key: SECURE_HSTS_INCLUDE_SUBDOMAINS
+        value: true
+      
+      # Database
+      - key: DATABASE_URL
+        fromDatabase:
+          name: youtomation-db
+          property: connectionString
+      
+      # Redis Cache
+      - key: REDIS_URL
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      
+      # Celery
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      
+      # API Keys (must be set via Render dashboard)
+      - key: SECRET_KEY
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+    
+    routes:
+      - type: http
+        source: /
+        destination: 0.0.0.0:8000
+
+  - type: background
+    name: youtomation-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    command: celery -A youtomation_core worker --loglevel=info --concurrency=4
+    plan: standard
+    
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: youtomation-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      - key: SECRET_KEY
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+
+  - type: background
+    name: youtomation-scheduler
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    command: celery -A youtomation_core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    plan: starter
+    
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: youtomation-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: youtomation-cache
+          type: pserv
+          property: REDIS_URL
+      - key: SECRET_KEY
+        sync: false
+
+  - type: pserv
+    name: youtomation-cache
+    runtime: redis
+    ipAllowList: []
+    plan: starter
+
+databases:
+  - name: youtomation-db
+    databaseName: youtomation
+    user: youtomation_user
+    plan: standard
+    version: '15'
+    region: oregon

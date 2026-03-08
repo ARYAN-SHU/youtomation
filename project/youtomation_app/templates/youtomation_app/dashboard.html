@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Youtomation{% endblock %}
+
+{% block content %}
+<div x-data="dashboardData()" x-cloak>
+    <!-- Page Title -->
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+    
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Videos -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Total Videos</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_videos }}</p>
+                </div>
+                <div class="bg-blue-100 rounded-lg p-3">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Videos -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Active Videos</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">{{ active_count }}</p>
+                </div>
+                <div class="bg-green-100 rounded-lg p-3">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generating Videos -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Generating</p>
+                    <p class="text-3xl font-bold text-yellow-600 mt-2">{{ generating_count }}</p>
+                </div>
+                <div class="bg-yellow-100 rounded-lg p-3">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Failed Videos -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Failed Videos</p>
+                    <p class="text-3xl font-bold text-red-600 mt-2">{{ failed_count }}</p>
+                </div>
+                <div class="bg-red-100 rounded-lg p-3">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Additional Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Videos Last 24h -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-600 text-sm font-medium">Last 24 Hours</h3>
+            <p class="text-2xl font-bold text-gray-900 mt-2">{{ videos_last_24h }}</p>
+            <p class="text-xs text-gray-500 mt-2">Videos generated</p>
+        </div>
+        
+        <!-- Total Views -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-600 text-sm font-medium">Total Views</h3>
+            <p class="text-2xl font-bold text-gray-900 mt-2">{{ total_views|default:"0" }}</p>
+            <p class="text-xs text-gray-500 mt-2">From published videos</p>
+        </div>
+        
+        <!-- Total Likes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-gray-600 text-sm font-medium">Total Likes</h3>
+            <p class="text-2xl font-bold text-gray-900 mt-2">{{ total_likes|default:"0" }}</p>
+            <p class="text-xs text-gray-500 mt-2">Community engagement</p>
+        </div>
+    </div>
+    
+    <!-- Recent Videos Section -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-900">Recent Videos</h2>
+            <a href="{% url 'youtomation_app:videos_list' %}" class="text-red-600 hover:text-red-700 text-sm font-medium">View All</a>
+        </div>
+        
+        {% if recent_videos %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Title</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Views</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for video in recent_videos %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            <a href="{% url 'youtomation_app:video_detail' video.id %}" class="text-red-600 hover:text-red-700 font-medium">
+                                {{ video.title|truncatewords:8 }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                {% if video.status == 'published' %}
+                                    bg-green-100 text-green-800
+                                {% elif video.status == 'failed' %}
+                                    bg-red-100 text-red-800
+                                {% elif video.status|startswith:'generating' or video.status == 'uploading' %}
+                                    bg-yellow-100 text-yellow-800
+                                {% else %}
+                                    bg-blue-100 text-blue-800
+                                {% endif %}
+                            ">
+                                {{ video.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ video.created_at|date:"M d, Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">
+                            {{ video.youtube_views|default:"0" }}
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <a href="{% url 'youtomation_app:video_detail' video.id %}" class="text-red-600 hover:text-red-700 font-medium">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="px-6 py-8 text-center">
+            <p class="text-gray-500">No videos generated yet. The system will automatically generate videos every 12 hours.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function dashboardData() {
+    return {
+        init() {
+            // Initialize real-time updates if needed
+            this.setupAutoRefresh();
+        },
+        setupAutoRefresh() {
+            // Refresh dashboard every 30 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 30000);
+        }
+    }
+}
+</script>
+{% endblock %}
