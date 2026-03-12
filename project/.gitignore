@@ -1,0 +1,258 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual Environments
+venv/
+ENV/
+env/
+.venv
+env.bak/
+venv.bak/
+.virtualenv
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
+*.iml
+
+# IDE Extensions
+.prettierrc
+.prettier-ignore
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+htmlcov/
+.tox/
+.nox/
+.nose*
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Database & Media
+*.sqlite3
+*.sqlite
+*.db
+db.sqlite3
+media/
+uploads/
+*.rdb
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+desktop.ini
+
+# Temporary Files
+*.tmp
+*.bak
+*.swp
+*~
+.tmp/
+.cache/
+
+# Compiled Files
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Distribution / Packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Environment Files (Priority)
+.env
+.env.production
+.env.staging
+.env.development
+.env.local
+.env.*.local
+secrets.json
+credentials.json
+*.pem
+*.key
+*.pub
+
+# SSL Certificates
+ssl/
+certs/
+*.crt
+*.pem
+*.key
+
+# Node Modules (if using frontend build tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Static & Media Files (Generated)
+staticfiles/
+/static/
+/media/
+
+# Development
+.env.dev
+local_settings.py
+celerybeat-schedule
+dump.rdb
+
+# AWS / Cloud Credentials
+.aws/
+.azure/
+.gcloud/
+credentials/
+secrets/
+
+# Elasticsearch
+.elasticsearchdata/
+
+# Project Specific
+*.pkl
+*.pickle
+.scrapy
+instance/
+.webassets-cache
+.pytest_cache/
+docs/_build/
+
+# IDE
+*.sublime-project
+*.sublime-workspace
+
+# Production Build Artifacts
+dist/
+build/
+
+# CDN / Static Delivery
+.cache/
+cache/
+
+# Backup Files
+*.backup
+*.bak
+backup/
+backups/
+
+# Temporary Directories
+tmp/
+temp/
+.tmp/
+.cache/
+.session/
+
+# Video Files (if generated locally)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.flv
+
+# Audio Files
+*.mp3
+*.wav
+*.aac
+*.flac
+*.wma
+
+# Image Cache
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+thumbs/
+thumbnails/
+
+# API Keys & Secrets
+*_secret*
+*_key*
+*_token*
+private_key*
+secret_key*
+
+# CI/CD
+.github/workflows/local*
+.gitlab-ci.local.yml
+.travis.yml.local
+
+# System
+.vscode-server/
+.vscode-server-insiders/
+
+# Misc
+.tern-port
